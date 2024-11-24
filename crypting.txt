@@ -1,0 +1,41 @@
+#include <VirtualWire.h>
+
+//Les mêmes définitions que dans le code précédent
+
+void setup() {
+  Serial.begin(9600); //Pour afficher les messages sur le moniteur série
+  vw_set_tx_pin(portEmetteur); //Définit le port de l'émetteur
+  vw_set_rx_pin(portRecepteur); //Définit le port du récepteur
+  vw_setup(2000); //Initialise la bibliothèque VirtualWire avec un débit de 2000 bits par seconde
+  vw_rx_start(); //Active la réception des messages
+}
+
+void loop() {
+  //Pour envoyer un message "Bonjour" crypté
+  char message[] = "Bonjour"; //Le message à envoyer
+  char message_crypte[7]; //Le message crypté
+  for (int i = 0; i < 6; i++) { //Pour chaque caractère du message
+    message_crypte[i] = encrypt(message[i]); //On le crypte avec la fonction encrypt et on le stocke dans le message crypté
+  }
+  message_crypte[6] = '\0'; //On ajoute le caractère de fin de chaîne
+  vw_send((uint8_t *)message_crypte, strlen(message_crypte)); //On envoie le message crypté avec la fonction vw_send
+  vw_wait_tx(); //On attend que l'envoi soit terminé
+
+  //Pour recevoir un message crypté et le décrypter
+  uint8_t buf[VW_MAX_MESSAGE_LEN]; //Un tampon pour stocker le message reçu
+  uint8_t buflen = VW_MAX_MESSAGE_LEN; //La longueur du tampon
+  if (vw_get_message(buf, &buflen)) { //Si on reçoit un message avec la fonction vw_get_message
+    char message_recu[buflen + 1]; //Le message reçu en caractères
+    char message_decrypte[buflen + 1]; //Le message décrypté
+    for (int i = 0; i < buflen; i++) { //Pour chaque octet du tampon
+      message_recu[i] = char(buf[i]); //On le convertit en caractère et on le stocke dans le message reçu
+      message_decrypte[i] = decrypt(message_recu[i]); //On le décrypte avec la fonction decrypt et on le stocke dans le message décrypté
+    }
+    message_recu[buflen] = '\0'; //On ajoute le caractère de fin de chaîne
+    message_decrypte[buflen] = '\0'; //On ajoute le caractère de fin de chaîne
+    Serial.print("Message recu : "); //On affiche le message reçu sur le moniteur série
+    Serial.println(message_recu);
+    Serial.print("Message decrypte : "); //On affiche le message décrypté sur le moniteur série
+    Serial.println(message_decrypte);
+  }
+}
