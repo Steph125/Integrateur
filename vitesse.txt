@@ -1,0 +1,42 @@
+int sensor = 12;
+int etatSensor ;
+unsigned long start_time=0;
+unsigned long end_time=0;
+
+int nb_trous=20;
+int etat_old=1;
+int etat_new=1;
+int compt=0;
+float vit=0;
+int temps;
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(sensor, INPUT);
+  Serial.begin(9600);
+  temps=millis();
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  compt=0;
+  start_time=millis();
+  end_time=start_time+1000;
+  temps=millis();
+
+  while(millis()<end_time){
+    etat_new = digitalRead(sensor);
+    if (etat_old != etat_new) {
+      etat_old=etat_new;
+      compt=compt+1;
+    }
+  }
+  vit = float(compt)/(2*nb_trous); 
+
+  Serial.print("temps: ");
+  Serial.print(temps);
+  Serial.print(" vitesse: ");
+  Serial.println(vit);  
+
+}
